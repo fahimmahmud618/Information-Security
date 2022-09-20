@@ -5,7 +5,7 @@ typedef bitset<32> word;
 
 byte keyInBits[4][4];
 byte plainTextInBits[4][4];
-string keyInEnglish, plainTextInEnglish;
+string key_Input, Input_text;
 word w[44];
 
 word stateMatrix[4];
@@ -38,8 +38,7 @@ void calculateKeyInBits()
     {
         for(int j=0;j<4;j++)
         {
-            keyInBits[i][j]=(int)(keyInEnglish[i*4+j]);
-            //cout << keyInBits[i][j] << endl;
+            keyInBits[i][j]=(int)(key_Input[i*4+j]);
         }
     }
 }
@@ -70,7 +69,7 @@ void calculatePlainTextInBits()
     {
         for(int j=0;j<4;j++)
         {
-            plainTextInBits[i][j]=(int)(plainTextInEnglish[i*4+j]);
+            plainTextInBits[i][j]=(int)(Input_text[i*4+j]);
             //cout << keyInBits[i][j] << endl;
         }
     }
@@ -130,11 +129,9 @@ void formSubkeys()
 
             if(keyInBits[i][p].test(k))
             {
-                //cout << i << " " << p << " " << k << endl;
                 w[i].set(j);
             }
         }
-        //cout << w[i] << endl;
     }
 }
 
@@ -186,7 +183,7 @@ string byteToHex(byte b)
 
 string wordToHex(word s)
 {
-    string ans;
+    string output;
     for(int i=0;i<32;i=i+8)
     {
         byte temp;
@@ -197,18 +194,9 @@ string wordToHex(word s)
                 temp.set(j%8);
             }
         }
-        //cout << byteToHex(temp) << endl;
-        ans=ans+byteToHex(temp);
+        output=output+byteToHex(temp);
     }
-    return ans;
-}
-
-void printKey()
-{
-    for(int i=0;i<44;i++)
-    {
-        cout << "w[" << i << "] :" << wordToHex(w[i]) << endl;
-    }
+    return output;
 }
 
 int hexToInt(char ch)
@@ -234,14 +222,12 @@ byte wordToByte(word s, int l)
             temp.set(i%8);
         }
     }
-    //cout << byteToHex(temp) << " " << l << " " << wordToHex(s) << endl;
     return temp;
 }
 
 word g_function(word s)
 {
     string h=wordToHex(s);
-    //cout << h << endl;
     word ans;
     int ac=0;
     for(int i=0;i<h.length();i=i+2)
@@ -249,9 +235,7 @@ word g_function(word s)
         int x, y;
         x=hexToInt(h[i]);
         y=hexToInt(h[i+1]);
-        //cout << x << " " << y << endl;
         byte temp=S_Box[x][y];
-        //cout << temp << endl;
         for(int j=0;j<8;j++)
         {
             if(temp.test(j))
@@ -260,7 +244,6 @@ word g_function(word s)
             }
             ac++;
         }
-        //cout << ans << endl;
     }
     return ans;
 }
@@ -312,12 +295,10 @@ void calculateRoundKey()
             shiftedW3.set(i+24);
         }
     }
-    //cout << i << ": " << wordToHex(shiftedW3) << endl;
     word g=g_function(shiftedW3);
     word toAdd=((int)pow(2, i/4 -1)%229);
-    //cout << ((int)pow(2, i/4 -1)%229) << endl;
     g^=toAdd;
-    //cout << "g " << wordToHex(g) << endl;
+
     w[i]=w[i-4]^g;
     w[i+1]=w[i]^w[i-3];
     w[i+2]=w[i+1]^w[i-2];
@@ -357,20 +338,17 @@ void shiftRow(int roundNumber)
     {
         r[i]=byteToWord(wordToByte(stateMatrix[0], i), wordToByte(stateMatrix[1], i),
                         wordToByte(stateMatrix[2], i), wordToByte(stateMatrix[3], i));
-        //cout << wordToHex(r[i]) << endl;
     }
 
     for(int i=0;i<4;i++)
     {
         r[i]=leftShift(r[i], i);
-        //cout << wordToHex(r[i]) << endl;
     }
 
     for(int i=0;i<4;i++)
     {
         stateMatrix[i]=byteToWord(wordToByte(r[0], i), wordToByte(r[1], i),
                         wordToByte(r[2], i), wordToByte(r[3], i));
-        //cout << wordToHex(stateMatrix[i]) << endl;
     }
 }
 
@@ -415,12 +393,11 @@ byte multiplyBytes(byte a, byte b)
     else
     {
         byte ans=multiplyBytes(2, b);
-        //cout << ans << endl;
         return (ans^b);
     }
 }
 
-void mixColumn(int roundNumber)
+void mix_column(int roundNumber)
 {
     byte temp[4][4];
 
@@ -430,16 +407,9 @@ void mixColumn(int roundNumber)
         {
             for(int k=0;k<4;k++)
             {
-                temp[i][j]^=multiplyBytes(predefinedMatrix[i][k],
-                                        wordToByte(stateMatrix[j], k));
-                //cout << byteToHex(multiplyBytes(predefinedMatrix[i][k],
-                            //wordToByte(stateMatrix[j], k))) << endl;
-//cout << byteToHex(predefinedMatrix[i][k]) << " "
- //<< byteToHex(wordToByte(stateMatrix[j], k)) << endl;
+                temp[i][j]^=multiplyBytes(predefinedMatrix[i][k],wordToByte(stateMatrix[j], k));
             }
-            //cout << byteToHex(temp[i][j]) << " ";
         }
-        //cout << "\n";
     }
 
     for(int i=0;i<4;i++)
@@ -451,8 +421,16 @@ void mixColumn(int roundNumber)
 
 int main()
 {
-    keyInEnglish="Thats my Kung Fu";
-    plainTextInEnglish="My name is Fahim";
+    cout<<"Enter your text: ";
+    getline(cin,Input_text);
+
+    cout<<"Enter key: ";
+    getline(cin,key_Input);
+
+
+    //key_Input="Thats my Kung Fu";
+    //Input_text="My name is Fahim";
+
     calculateKeyInBits();
     calculatePlainTextInBits();
     formSubkeys();
@@ -460,19 +438,18 @@ int main()
     calculateRoundKey();
     calculateStateMatrix();
     addRoundKey(0);
-    //printStateMatrix();
+
+
     for(int i=1;i<=10;i++)
     {
-    substitutionBytes(1);
-    //printStateMatrix();
-    shiftRow(i);
-    //printStateMatrix();
-    if(i!=10)
-    mixColumn(i);
-    addRoundKey(i);
-    cout << "After Round " << i << ": " << endl;
-    printStateMatrix();
-    cout << "\n\n";
+        substitutionBytes(1);
+        shiftRow(i);
+        if(i!=10)
+        mix_column(i);
+        addRoundKey(i);
+        cout << "After Round " << i << ": " << endl;
+        printStateMatrix();
+        cout << "\n\n";
     }
 
     cout << "Cipher text : ";
@@ -482,5 +459,4 @@ int main()
         cout << wordToHex(stateMatrix[i]) << " " ;
     }
 
-    //printKey();
 }
